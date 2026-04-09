@@ -2,7 +2,7 @@
 
 Diyanet İşleri Başkanlığı personelinin yer değiştirme ve tayin işlemlerinde esas alınan **Müktesebat (Hizmet) Puanı** ve **MBSTS** sonuçlarını kolayca hesaplamak için geliştirilmiş, web tabanlı, kullanıcı dostu bir araçtır.
 
-🚀 **Canlı Demo:** [https://dibmuktesebat.netlify.app/](https://dibmuktesebat.netlify.app/)
+🚀 **Canlı Demo:** [https://mayazgan.github.io/muktesep-hesaplama/](https://mayazgan.github.io/muktesep-hesaplama/)
 
 ---
 
