@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="msapplication-navbutton-color" content="#0f172a">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Müktesebat">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="logo.png">
+    <link rel="icon" sizes="512x512" href="logo.png">
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="google-site-verification" content="OqLfUWx2TTWoxK26X3bUpq0Yx_9P_ih_NpAU-UmWZqE" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Diyanet personeli için en hızlı Müktesebat ve MBSTS puan hesaplama robotu. PDF ve resimden otomatik puan okuma özelliğiyle ücretsiz hizmet.">
+    <meta name="keywords" content="diyanet müktesebat hesaplama, müktesep hesaplama, müktesep hesapla, müktesebat hesapla, müktesebat hesaplama, dib, müktesep, müktesebat, mbsts puanı hesapla, diyanet puan robotu, gölova müftülüğü">
+    <meta name="author" content="Gölova İlçe Müftülüğü">
+
+    <title>DİB Müktesebat & MBSTS Puan Hesaplama Robotu</title>
+
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+    html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* Sağ tarafa kaymayı önler */
+}
+        :root {
+            --primary: #f8fafc;
+            --accent: #3b82f6;
+            --mbsts-color: #a855f7;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --header-bg: #1e293b;
+            --border-color: #334155;
+            --modal-overlay: rgba(0,0,0,0.85);
+            --success-green: #2ecc71;
+            --normal-blue: #2792f2;
+            --danger-red: #e74c3c;
+        }
+
+        /* GERİ YÜKLENEN GEÇİŞ EFEKTLERİ (TRANSITION) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+            transition: background 0.25s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+        }
+
+        body { background: var(--bg); padding: 20px; color: var(--text-color); }
+        .wrapper { max-width: 1100px; margin: 0 auto; position: relative; }
+
+        /* --- BUTONLAR --- */
+        .btn-main {
+            border: none; padding: 14px 20px; border-radius: 12px; cursor: pointer;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 1rem; width: 100%; margin-bottom: 12px; color: #ffffff;
+        }
+
+        /* GERİ YÜKLENEN TIKLAMA EFEKTİ (ACTIVE) */
+        .btn-main:active { transform: scale(0.98); }
+
+        .btn-calc { background: var(--success-green); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3); }
+        .btn-calc:hover { box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5); }
+
+        .btn-wp { background: var(--normal-blue); box-shadow: 0 4px 15px rgb(53, 145, 227, 0.3);}
+        .btn-wp:hover {opacity: 0.9;}
+
+        .btn-mbsts { background: var(--mbsts-color); }
+        .btn-mbsts:hover { opacity: 0.9; }
+
+        .btn-cancel { background: rgba(231, 76, 60, 0.15); color: var(--danger-red); border: 1px solid var(--danger-red); }
+        .btn-cancel:hover { background: var(--danger-red); color: white; }
+
+        /* --- ANA TASARIM --- */
+        .header-area {
+            text-align: center; margin-bottom: 30px; padding: 30px;
+            background: var(--header-bg); border-radius: 16px; border: 1px solid var(--border-color);
+        }
+        .logo-container img { max-width: 140px; margin-bottom: 15px; }
+        .logo-container-w img { max-width: 80px; margin-bottom: 0px; }
+        h1 { color: var(--primary); font-size: 1.8rem; font-weight: 800; }
+
+        .grid-container { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
+        .card {
+            background: var(--card-bg); border-radius: 15px; padding: 25px;
+            margin-bottom: 20px; border: 1px solid var(--border-color);
+            border-left: 5px solid var(--accent);
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); }
+        input[type="number"] {
+            width: 100%; padding: 12px; border: 2px solid var(--border-color);
+            background: var(--bg); color: var(--text-color); border-radius: 10px; outline: none;
+        }
+        input:focus { border-color: var(--accent); }
+
+        .check-item {
+            display: flex; align-items: center; background: rgba(255,255,255,0.03);
+            padding: 12px; border-radius: 10px; cursor: pointer; margin-bottom: 8px;
+            border: 1px solid transparent; font-size: 0.9rem;
+        }
+
+        /* GERİ YÜKLENEN HOVER EFEKTİ */
+        .check-item:hover { background: rgba(255,255,255,0.07); border-color: var(--border-color); }
+        .check-item input { margin-right: 12px; transform: scale(1.1); }
+
+        .result-panel {
+            background: #1e293b; color: #f1f5f9; padding: 25px;
+            border-radius: 18px; border: 1px solid var(--border-color);
+        }
+
+
+        .res-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .total-box {
+    margin-top: 25px;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 2px dashed var(--accent); /* Çizgi kalınlığını 2px yaptık */
+    transition: border-color 0.4s ease; /* Renk geçişini yumuşattık */
+}
+
+        /* RENK GEÇİŞİ İÇİN TRANSITION EKLEDİK */
+        .total-val { font-size: 2.4rem; font-weight: 800; display: block; color: var(--accent); transition: color 0.3s ease; }
+
+        /* --- MODALLAR VE GERİ YÜKLENEN AÇILIŞ ANİMASYONU --- */
+        .target-overlay, .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0;
+            width: 100%; height: 100%; background: var(--modal-overlay); backdrop-filter: blur(5px);
+        }
+        .target-content, .modal-content {
+            background: var(--card-bg); margin: 10% auto; padding: 30px;
+            border-radius: 20px; width: 90%; max-width: 480px; text-align: center;
+            border: 1px solid var(--border-color);
+
+            /* GERİ YÜKLENEN ANİMASYON (POP-SCALE) */
+            animation: popScale 0.3s ease;
+        }
+
+        /* ANİMASYON TANIMI */
+        @keyframes popScale {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
+
+        :root {
+    --footer-bg: #121212; /* Google Dark moduna yakın ton */
+    --footer-text: #9aa0a6;
+    --footer-border: rgba(255,255,255,0.1);
+    --accent-color: #8ab4f8; /* Google Mavi */
+}
+
+.pro-footer {
+    width: 100%; /* Ekranı tam kapla */
+    margin: 0 !important; /* Dış boşlukları öldür */
+    padding: 40px 0; /* İç boşluğu dengeli tut */
+    box-sizing: border-box; /* Padding'in genişliği bozmasını engelle */
+    display: block;
+    position: relative;
+    left: 0;
+    right: 0;
+}
+
+.footer-top {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 40px;
+    padding-bottom: 40px;
+}
+
+.footer-section h4 {
+    color: #fff;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 12px;
+}
+
+.footer-section ul li a {
+    color: var(--footer-text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-section ul li a:hover {
+    color: var(--accent-color);
+}
+
+/* Paylaş Butonları */
+.share-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.share-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: 1px solid var(--footer-border);
+}
+
+.share-btn:hover {
+    transform: translateY(-3px);
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* Alt Çizgi ve İmza */
+.footer-bottom {
+    max-width: 1000px;
+    margin: 0 auto;
+    border-top: 1px solid var(--footer-border);
+    padding-top: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.brand-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--footer-text);
+    font-size: 0.75rem;
+}
+
+.mini-logo {
+    width: 24px;
+    height: auto;
+    opacity: 0.8;
+}
+
+/* Mobil Ayarlar */
+@media (max-width: 600px) {
+    .pro-footer {
+        padding-top: 40px;
+        text-align: center;
+    }
+    .share-buttons {
+        justify-content: center;
+    }
+    .footer-top {
+        gap: 30px;
+    }
+}
+
+/* --- Kendi Logon İçin Özel Buton Stilleri --- */
+
+/* Butonun genel ayarı (Mevcut share-btn stilini eziyoruz) */
+.share-btn.developer-brand {
+    background: rgba(255,255,255,0.08); /* Biraz daha belirgin bir zemin */
+    overflow: hidden; /* Logonun taşmasını önler */
+    padding: 0; /* İç boşluğu sıfırlayıp logoyu sığdıracağız */
+}
+
+/* Butonun içine yerleşen logo */
+.share-btn-logo {
+    width: 20px; /* Diğer ikonlarla uyumlu boyut (Örn: fa-whatsapp gibi) */
+    height: 20px;
+    object-fit: contain; /* Logonun en-boy oranını korur */
+    opacity: 0.9; /* Diğer ikonlarla aynı sönüklükte dursun */
+    transition: opacity 0.3s;
+}
+
+/* Üzerine gelince (Hover) efekti */
+.share-btn.developer-brand:hover {
+    background: #444; /* Fareyle gelince daha koyu bir griye döner */
+    border-color: #555;
+    transform: translateY(-3px);
+}
+
+.share-btn.developer-brand:hover .share-btn-logo {
+    opacity: 1; /* Hover durumunda logo parlasın */
+}
+
+/* Mobilde sönük kalmaması için (Önceki opacity:0.7 sorununun çözümü) */
+@media (max-width: 600px) {
+    .share-btn-logo {
+        opacity: 1; /* Mobilde hep canlı görünsün */
+    }
+}
+    </style>
+</head>
+<body>
+<script>
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault();
+deferredPrompt = e;
+// Burada kullanıcıya "Uygulamayı Yükle" butonu gösterebilirsin
+console.log("Uygulama yüklenmeye hazır.");
+});
+
+// Örnek bir butona tıklandığında tetiklemek için:
+function installApp() {
+if (deferredPrompt) {
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then((choiceResult) => {
+    if (choiceResult.outcome === 'accepted') {
+      console.log('Kullanıcı uygulamayı yükledi');
+    }
+    deferredPrompt = null;
+  });
+}
+}
+</script>
+<div class="wrapper">
+    <div class="header-area">
+      <div class="logo-container">
+            <img src="logo.png" alt="Gölova İlçe Müftülüğü">
+        </div>
+        <h1>Gölova İlçe Müftülüğü</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">Müktesebat ve MBSTS Hesaplama Sistemi</p>
+    </div>
+    <div class="grid-container">
+  <div class="left-col">
+    <button class="btn-main btn-mbsts" onclick="openModal()">
+        📝 MBSTS Puanını Hesapla
+    </button>
+  </div>
+    </div>
+    <div class="grid-container">
+        <div class="left-col">
+            <div class="card">
+                <div style="font-weight:700; margin-bottom:18px; color:var(--accent);">⏳ Müktesep & Hizmet Bilgileri</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hizmet Süresi (Yıl)</label>
+                        <input type="number" id="yil" value="4" min="0" oninput="calculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>MBSTS Puanı</label>
+                        <input type="number" id="mbstsGiris" value="70.00" step="0.001" oninput="calculate()">
+                    </div>
+                </div>
+
+                <div style="font-weight:600; margin-bottom:12px; font-size:0.85rem; color:var(--text-muted);">EĞİTİM VE BELGELER</div>
+                <div class="check-group">
+                    <label class="check-item"><input type="checkbox" class="edu" value="10" onchange="calculate()"> İmam Hatip Lisesi (10 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="5" onchange="calculate()"> Ön Lisans (5 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="5" onchange="calculate()"> Diğer Lisans (5 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="10" onchange="calculate()"> İlahiyat Fakültesi (10 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="2" onchange="calculate()"> Yüksek Lisans (2 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="8" onchange="calculate()"> Hafızlık (8 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="5" onchange="calculate()"> İhtisas / Aşere vb. (5 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="3" onchange="calculate()"> Tashih-i Huruf (3 Puan)</label>
+                    <label class="check-item"><input type="checkbox" class="edu" value="2" onchange="calculate()"> YDS (C ve üstü) (2 Puan)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-col">
+            <div class="result-panel">
+                <h3 style="text-align: center; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom:15px;">📊 Mevcut Durum Özeti</h3>
+                <div class="res-row"><span>Görev Yılı Puanı:</span> <span id="outGorev">0.000</span></div>
+                <div class="res-row"><span>Eğitim/Belge Puanı:</span> <span id="outEgitim">0.000</span></div>
+                <div class="res-row"><span>MBSTS Etkisi (%40):</span> <span id="outMbstsEtki">0.000</span></div>
+                <div class="res-row"><span>Müktesep Etkisi (%20):</span> <span id="outMukEtki">0.000</span></div>
+
+                <div class="total-box">
+                    <span style="font-size: 0.8rem; font-weight: 700; opacity: 0.8;">MÜKTESEP PUANI</span>
+                    <span class="total-val" id="outGiris">0.000</span>
+                </div>
+                <p style="font-size: 0.75rem; text-align: center; margin-top: 15px; color: var(--text-muted);">* Bu puana mülakat puanının %40'ı eklenecektir.</p>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn-main btn-calc" onclick="showTargetPopup()">
+                    🚀 HESAPLA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="targetOverlay" class="target-overlay" onclick="closeTargetPopup()">
+    <div class="target-content" onclick="event.stopPropagation()">
+        <div id="targetIcon" style="font-size: 3.5rem; margin-bottom: 15px;">🎯</div>
+        <h2 id="targetTitle" style="margin-bottom: 10px;">Mülakat Hedef Puanı</h2>
+        <div id="targetMsg" style="font-size: 1.15rem; line-height: 1.6; margin-bottom: 25px;"></div>
+        <button class="btn-main" onclick="closeTargetPopup()" style="background: var(--accent); margin: 0;">Anladım</button>
+    </div>
+</div>
+
+<div id="mbstsModal" class="modal">
+    <div class="modal-content">
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+            <p style="font-size: 0.85rem; margin-bottom: 10px;">Sınav Sonuç Belgesi (PDF):</p>
+            <input type="file" id="fileUpload" accept=".pdf" style="display: none;" onchange="processFile(this)">
+            <button class="btn-main" onclick="document.getElementById('fileUpload').click()" style="background: #475569; font-size: 0.9rem;">
+                📂 PDF Belgesi Seç
+            </button>
+        </div>
+
+        <h2 style="color:var(--mbsts-color); margin-bottom:20px; text-align: center;">MBSTS Hesapla</h2>
+
+        <label>Doğru Sayısı (0-60)</label>
+        <input type="number" id="popDogru" value="0" min="0" max="60" style="margin-bottom:20px; text-align:center; font-size:1.2rem;"></input>
+
+        <div style="text-align:center; padding:20px; background:var(--mbsts-color); color:white; border-radius:15px; margin-bottom:20px">
+            <div style="font-size:0.9rem">Hesaplanan Puan</div>
+            <div id="popPuan" style="font-size:2rem; font-weight:800">0.000</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn-main btn-mbsts" onclick="aktarVeKapat()" style="margin: 0;">Puanı Aktar</button>
+            <button class="btn-main btn-cancel" onclick="closeModal()" style="margin: 0;">Vazgeç</button>
+        </div>
+    </div>
+</div>
+
+<div id="scanResultModal" class="modal">
+    <div class="modal-content" style="border-left: 5px solid var(--success-green); max-width: 400px;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">📄</div>
+        <h2 style="color:var(--success-green); margin-bottom:15px;">Belge Okundu</h2>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: left;">
+            <p style="margin-bottom: 10px; display: flex; justify-content: space-between;">
+                <span>Tespit Edilen Doğru:</span> <b id="resDogru" style="color: var(--accent);">--</b>
+            </p>
+            <p style="display: flex; justify-content: space-between;">
+                <span>Belgedeki Puan:</span> <b id="resPuan" style="color: var(--success-green);">--</b>
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <button class="btn-main btn-calc" id="confirmBtn" style="margin: 0;">Puanı Sisteme Aktar</button>
+            <button class="btn-main btn-cancel" onclick="document.getElementById('scanResultModal').style.display='none'" style="margin: 0; border:none; background:none; font-size:0.8rem;">Vazgeç</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal() {
+// Modal'ı göster
+document.getElementById("mbstsModal").style.display = "block";
+
+// Girdi ve göstergeleri sıfırla
+if(document.getElementById('fileUpload')) document.getElementById('fileUpload').value = "";
+if(document.getElementById('popPuan')) document.getElementById('popPuan').innerText = "0.000";
+
+// Eğer varsa manuel doğru girişini de temizle
+if(document.getElementById('popDogru')) document.getElementById('popDogru').value = "";
+}
+function closeModal() {
+document.getElementById("mbstsModal").style.display = "none";
+// Seçili dosyayı temizle ki aynı dosyayı tekrar seçince tetiklensin
+if(document.getElementById('fileUpload')) document.getElementById('fileUpload').value = "";
+}
+
+    function aktarVeKapat() {
+        let dogru = parseFloat(document.getElementById('popDogru').value) || 0;
+        let puan = (dogru * 1.333333333) + 20;
+        document.getElementById('mbstsGiris').value = Math.min(puan, 100).toFixed(3);
+        calculate();
+        closeModal();
+    }
+
+    document.getElementById('popDogru').oninput = function() {
+    let d = parseFloat(this.value) || 0;
+    // MBSTS Formülü
+    let p = (d * 1.333333333) + 20;
+    let hesaplanan = Math.min(p, 100).toFixed(3);
+
+    // Hem modal içindeki etiketi hem de ana sayfadaki giriş kutusunu güncelle
+    document.getElementById('popPuan').innerText = hesaplanan;
+    document.getElementById('mbstsGiris').value = hesaplanan;
+
+    // Arka plandaki çerçeve renklerini ve toplam puanı anında güncelle
+    calculate();
+};
+
+    function calculate() {
+        const yil = parseFloat(document.getElementById('yil').value) || 0;
+        const mbsts = parseFloat(document.getElementById('mbstsGiris').value) || 0;
+
+        let gorevPuan = (yil <= 10) ? (yil * 3) : (30 + (yil - 10));
+        let egitimTop = 0;
+        document.querySelectorAll('.edu:checked').forEach(c => egitimTop += parseFloat(c.value));
+
+        const mukTop = gorevPuan + egitimTop;
+        const mbstsEtki = mbsts * 0.4;
+        const mukEtki = mukTop * 0.2;
+        const girisPuan = mbstsEtki + mukEtki;
+
+        document.getElementById('outGorev').innerText = gorevPuan.toFixed(3);
+        document.getElementById('outEgitim').innerText = egitimTop.toFixed(3);
+        document.getElementById('outMbstsEtki').innerText = mbstsEtki.toFixed(3);
+        document.getElementById('outMukEtki').innerText = mukEtki.toFixed(3);
+
+        const outGirisEleman = document.getElementById('outGiris');
+        const outGirisKutusu = document.querySelector('.total-box'); // Çerçeve için kutuyu seçtik
+
+        outGirisEleman.innerText = girisPuan.toFixed(3);
+
+        // Dinamik Renk Kontrolü: 30 puan ve üstü YEŞİL, Altı KIRMIZI
+        if (girisPuan >= 30) {
+            outGirisEleman.style.color = "var(--success-green)";
+            outGirisKutusu.style.borderColor = "var(--success-green)"; // Çerçeve Rengi
+        } else {
+            outGirisEleman.style.color = "var(--danger-red)";
+            outGirisKutusu.style.borderColor = "var(--danger-red)"; // Çerçeve Rengi
+        }
+    }
+
+    function showTargetPopup() {
+        const girisPuan = parseFloat(document.getElementById('outGiris').innerText);
+        const gerekenMulakat = (70 - girisPuan) / 0.4;
+        const overlay = document.getElementById('targetOverlay');
+        const msg = document.getElementById('targetMsg');
+        const icon = document.getElementById('targetIcon');
+        const title = document.getElementById('targetTitle');
+
+        overlay.style.display = "block";
+        if (gerekenMulakat > 100) {
+            icon.innerText = "❌";
+            title.innerText = "Yetersiz Puan";
+            title.style.color = "var(--danger-red)";
+            msg.innerHTML = `Mevcut puanınızla mülakat sınavından 100 tam puan alsanız dahi barajı (70) geçmeniz mümkün görünmüyor.<br><br>Baraj için gereken mülakat puanı: <b style="color:var(--danger-red)">${gerekenMulakat.toFixed(2)}</b>`;
+        } else if (gerekenMulakat <= 0) {
+            icon.innerText = "✅";
+            title.innerText = "Baraj Geçildi";
+            title.style.color = "var(--success-green)";
+            msg.innerHTML = `Mevcut giriş puanınız mülakata girmeden barajı (70) geçmek için yeterli!<br>Puanınız: <b>${girisPuan.toFixed(3)}</b>`;
+        } else {
+            icon.innerText = "🎯";
+            title.innerText = "Mülakat Hedef Puanı";
+            title.style.color = "var(--success-green)";
+            msg.innerHTML = `Barajı (70) geçerek tercih yapabilmeniz için mülakattan almanız gereken <b>en düşük</b> puan:<br><br><b style="font-size:2.8rem; color:var(--success-green)">${gerekenMulakat.toFixed(2)}</b>`;
+        }
+    }
+
+    function closeTargetPopup() { document.getElementById('targetOverlay').style.display = "none"; }
+    window.onload = calculate;
+
+    // PDF İşleyicisi Ayarı
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+async function processFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const puanGosterge = document.getElementById('popPuan');
+    puanGosterge.innerText = "PDF Okunuyor...";
+
+    try {
+        if (file.type === "application/pdf") {
+            const reader = new FileReader();
+            reader.onload = async function() {
+                try {
+                    const typedarray = new Uint8Array(this.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let fullText = "";
+
+                    // Sayfaları tek tek oku
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        fullText += content.items.map(s => s.str).join(" ");
+                    }
+
+                    // Metin boşsa uyarı ver
+                    if (fullText.trim().length === 0) {
+                        alert("PDF içeriği okunamadı (Resim formatında olabilir).");
+                        puanGosterge.innerText = "0.000";
+                        return;
+                    }
+
+                    autoFindScore(fullText);
+                } catch (pdfError) {
+                    console.error("PDF İşleme Hatası:", pdfError);
+                    alert("PDF okunurken bir hata oluştu.");
+                    puanGosterge.innerText = "0.000";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            alert("Lütfen sadece PDF dosyası yükleyin.");
+            puanGosterge.innerText = "0.000";
+        }
+    } catch (err) {
+        console.error("Genel Hata:", err);
+        alert("Dosya işlenemedi.");
+        puanGosterge.innerText = "0.000";
+    }
+}
+
+async function autoFindScore(text) {
+    // 1. Metni temizle ve sayıları bul
+    const temizMetin = text.replace(/\s+/g, ' ').replace(/,/g, '.');
+    const tumSayilar = temizMetin.match(/\d+(?:\.\d+)?/g);
+
+    let tespitEdilenPuan = null;
+
+    if (tumSayilar) {
+        // 10-100 arası ondalıklı sayıları filtrele
+        const adaylar = tumSayilar.map(s => parseFloat(s)).filter(n => n > 10 && n <= 100);
+
+        if (adaylar.length > 0) {
+            // Noktadan sonra en çok hanesi olanı (en detaylı puanı) seç
+            tespitEdilenPuan = adaylar.reduce((prev, curr) => {
+                const prevDec = (prev.toString().split('.')[1] || "").length;
+                const currDec = (curr.toString().split('.')[1] || "").length;
+                return currDec >= prevDec ? curr : prev;
+            });
+        }
+    }
+
+    if (tespitEdilenPuan) {
+        const puanStr = tespitEdilenPuan.toFixed(3);
+
+        // Modalları yönet
+        document.getElementById('mbstsModal').style.display = "none";
+        const scanModal = document.getElementById('scanResultModal');
+
+        if (scanModal) {
+            document.getElementById('resPuan').innerText = puanStr;
+
+            document.getElementById('confirmBtn').onclick = function() {
+                document.getElementById('mbstsGiris').value = puanStr;
+                if (typeof calculate === "function") calculate();
+                scanModal.style.display = 'none';
+                document.getElementById('fileUpload').value = "";
+            };
+
+            scanModal.style.display = "block";
+        } else {
+            // Eğer sonuç modali yoksa direkt ana kutuya yaz
+            document.getElementById('mbstsGiris').value = puanStr;
+            if (typeof calculate === "function") calculate();
+            alert("Puan aktarıldı: " + puanStr);
+        }
+    } else {
+        alert("PDF içerisinde uygun bir puan bulunamadı.");
+        document.getElementById('popPuan').innerText = "0.000";
+    }
+}
+</script>
+<footer class="pro-footer">
+    <div class="footer-top">
+        <div class="footer-section">
+            <h4>Yardım & Destek</h4>
+            <ul>
+                <section style="text-align: left;max-width: 800px; margin: 2px auto; padding: 2px; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                    <details style="margin-bottom: 10px; cursor: pointer;">
+                        <summary><b>DİB Müktesebat Puanı Nedir?</b></summary>
+                        <p>Diyanet İşleri Başkanlığı personelinin yer değiştirme ve tayin işlemlerinde esas alınan hizmet puanıdır.</p>
+                    </details>
+                    <details style="margin-bottom: 10px; cursor: pointer;">
+                        <summary><b>MBSTS Puanı Hesaplanırken PDF Nasıl Kullanılır?</b></summary>
+                        <p>Sınav sonuç belgenizi PDF formatında yükleyerek puanınızın otomatik olarak sisteme aktarılmasını sağlayabilirsiniz.</p>
+                    </details>
+                    </section>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Paylaş</h4>
+            <div class="share-buttons">
+                <a href="https://api.whatsapp.com/send?text=Diyanet%20Müktesebat%20Hesaplama:%20https://dibmuktesebat.netlify.app" target="_blank" class="share-btn whatsapp" title="WhatsApp'ta Paylaş">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=https://dibmuktesebat.netlify.app" target="_blank" class="share-btn facebook" title="Facebook'ta Paylaş">
+                    <i class="fab fa-facebook"></i>
+                </a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h4>Bağlantılar</h4>
+            <div class="share-buttons">
+                <a href="https://sivas.diyanet.gov.tr/golova" target="_blank" class="share-btn developer-brand" title="Gölova İlçe Müftülüğü">
+            <img src="logo.png" alt="Gölova İlçe Müftülüğü" class="share-btn-logo">
+        </a>
+        <a href="https://github.com/mayazgan" target="_blank" class="share-btn developer-brand" title="Gölova İlçe Müftülüğü">
+              <img src="mayazgan-logo.png" alt="Gölova İlçe Müftülüğü" class="share-btn-logo">
+</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="brand-line">
+            <img src="mayazgan-logo.png" alt="Logo" class="mini-logo">
+            <span>&copy; 2026 <strong>MAYAZGAN</strong> • Tüm Hakları Saklıdır</span>
+        </div>
+    </div>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Uygulama Hazır.'))
+      .catch(err => console.log('Hata:', err));
+  });
+}
+</script>
+</body>
+</html>
