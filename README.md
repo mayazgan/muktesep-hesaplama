@@ -33,4 +33,4 @@ Herhangi bir hata bildirimi veya öneri için Issues kısmını kullanabilir vey
 
 Geliştirici: [MAYAZGAN]
 
-Web Sitesi: https://dibmuktesebat.netlify.app/
+Web Sitesi: https://mayazgan.github.io/muktesep-hesaplama/
