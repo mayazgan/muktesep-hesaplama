@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mayazgan.github.io/muktesep-hesaplama/sitemap.xml
+Sitemap: https://mayazgan.github.io/muktesep-hesaplama/sitemap.txt
