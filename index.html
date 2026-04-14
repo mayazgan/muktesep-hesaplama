@@ -64,26 +64,7 @@
     height: 100%;
     overflow-x: hidden; /* Sağ tarafa kaymayı önler */
 }
-    /* Kaydırma özelliğini aktifleştiriyoruz */
-.main-container {
-    height: 100vh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory; /* Dikeyde hizalamayı zorunlu yapar */
-    scroll-behavior: smooth;
-}
 
-/* Her bir ana bölümü (div) bir slide yapıyoruz */
-section {
-    height: 100vh; /* Her bölüm tam ekran boyunda olur */
-    width: 100%;
-    scroll-snap-align: start; /* Kaydırma bittiğinde bölümün başına yapışır */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* İçerikleri dikeyde ortalar */
-    align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
         :root {
             --primary: #f8fafc;
             --accent: #3b82f6;
