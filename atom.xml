@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Diyanet Müktesebat Puan Hesaplama</title>
+  <subtitle>Diyanet personeli için güncel MBSTS ve Müktesep puan hesaplama aracı.</subtitle>
+  <link href="https://mayazgan.github.io/muktesep-hesaplama/atom.xml" rel="self" />
+  <link href="https://mayazgan.github.io/muktesep-hesaplama/" />
+  <updated>2026-04-14T16:00:00Z</updated>
+  <author>
+    <name>MAYAZGAN</name>
+  </author>
+  <id>https://mayazgan.github.io/muktesep-hesaplama/</id>
+
+  <entry>
+    <title>2026 Müktesebat ve MBSTS Puan Hesaplama Robotu</title>
+    <link href="https://mayazgan.github.io/muktesep-hesaplama/" />
+    <id>https://mayazgan.github.io/muktesep-hesaplama/</id>
+    <updated>2026-04-14T16:00:00Z</updated>
+    <summary>Diyanet personeli için en güncel il ve ilçe bazlı müktesep puan hesaplama robotu.</summary>
+    <content type="html">
+      <![CDATA[
+        Diyanet İşleri Başkanlığı personeli için geliştirilen, MBSTS puanı ve hizmet süresine göre tayin puanı hesaplayan ücretsiz araç.
+      ]]>
+    </content>
+  </entry>
+</feed>
