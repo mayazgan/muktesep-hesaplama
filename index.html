@@ -580,11 +580,19 @@ if(document.getElementById('fileUpload')) document.getElementById('fileUpload').
     }
 
     function closeTargetPopup() { document.getElementById('targetOverlay').style.display = "none"; }
-    window.onload = calculate;
+    // Sayfa tamamen yüklendiğinde çalışacak ana ayarlar
+window.onload = function() {
+    // Mevcut calculate fonksiyonunu çalıştır
+    calculate(); 
 
-    // PDF İşleyicisi Ayarı
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-
+    // PDF İşleyicisi Ayarını güvenli bir şekilde yap
+    if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    } else {
+        console.warn("PDF kütüphanesi yüklenemedi, PDF özellikleri kısıtlı olabilir.");
+    }
+};
+    
 async function processFile(input) {
     const file = input.files[0];
     if (!file) return;
