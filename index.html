@@ -93,6 +93,16 @@
         body { background: var(--bg); padding: 20px; color: var(--text-color); }
         .wrapper { max-width: 1100px; margin: 0 auto; position: relative; }
 
+        .back-btn {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+        
         /* --- BUTONLAR --- */
         .btn-main {
             border: none; padding: 14px 20px; border-radius: 12px; cursor: pointer;
@@ -372,6 +382,7 @@ if (deferredPrompt) {
 }
 </script>
 <div class="wrapper">
+    <a href="https://mayazgan.github.io/index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Ana Sayfa</a>
     <div class="header-area">
       <div class="logo-container">
             <img src="logo.webp" fetchpriority="high" alt="Gölova İlçe Müftülüğü">
